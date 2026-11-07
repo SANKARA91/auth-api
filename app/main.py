@@ -10,7 +10,7 @@ from pydantic import BaseModel
 SECRET = os.environ["JWT_SECRET"]  # l'appli refuse de démarrer sans secret
 TTL = 900  # durée de vie du jeton : 15 minutes
 
-app = FastAPI(title="auth-api")
+app = FastAPI(title="auth-api v2")
 bearer = HTTPBearer()
 
 users = {}  # stockage en mémoire, perdu à chaque redémarrage (démo)
