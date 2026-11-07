@@ -1,0 +1,30 @@
+trigger:
+  branches:
+    include:
+      - dev
+
+pool:
+  name: lab-pool
+
+variables:
+  acr: acrlabsankara01.azurecr.io
+  image: auth-api
+
+steps:
+  - task: AzureCLI@2
+    displayName: Build et push vers ACR
+    inputs:
+      azureSubscription: azure-lab
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr login --name acrlabsankara01 --expose-token --output tsv --query accessToken | \
+          podman login $(acr) -u 00000000-0000-0000-0000-000000000000 --password-stdin
+        podman build -t $(acr)/$(image):$(Build.BuildId) .
+        podman push $(acr)/$(image):$(Build.BuildId)
+
+  - script: |
+      export KUBECONFIG=$HOME/.kube/aks-config
+      kubectl -n auth-dev set image deployment/auth-api auth-api=$(acr)/$(image):$(Build.BuildId)
+      kubectl -n auth-dev rollout status deployment/auth-api --timeout=120s
+    displayName: Déploiement sur AKS
